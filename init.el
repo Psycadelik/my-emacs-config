@@ -10,6 +10,13 @@
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.org/packages/") t)
 
+;; Initializes the package infrastructure
+(package-initialize)
+
+;; If there are no archived package contents, refresh them
+(when (not package-archive-contents)
+  (package-refresh-contents))
+
 ;; Add the elegant theme to emacs
 (defun load-relative-file (f)
   (load-file (expand-file-name f (file-name-directory load-file-name))))
@@ -17,13 +24,6 @@
 (load-relative-file "elegant-emacs/sanity.el")
 (load-relative-file "elegant-emacs/elegance.el")
 (elegance-light)
-
-;; Initializes the package infrastructure
-(package-initialize)
-
-;; If there are no archived package contents, refresh them
-(when (not package-archive-contents)
-  (package-refresh-contents))
 
 ;; Installs packages
 ;;
@@ -53,20 +53,18 @@
 ;;(load-theme 'material t)            ;; Load material theme
 (global-linum-mode t)               ;; Enable line numbers globally
 
+;;;; Org mode configuration
+(require 'org)
+;; make org mode work with files ending in .org
+ (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+
 ;; ====================================
 ;; Development Setup
 ;; ====================================
-;; Enable elpy
-(elpy-enable)
 
-;; Enable Flycheck
-(when (require 'flycheck nil t)
-  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-  (add-hook 'elpy-mode-hook 'flycheck-mode))
-
-;; Enable autopep8
-(require 'py-autopep8)
-(add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+;; Add wakatime
+;; wakatime api-key: e4e951a9-7395-44f0-a429-d0f348671ae3
+(global-wakatime-mode)
 
 ;; User-Defined init.el ends here
 (custom-set-variables
@@ -76,8 +74,7 @@
  ;; If there is more than one, they won't work right.
  '(blink-cursor-mode nil)
  '(package-selected-packages
-   (quote
-    (magit py-autopep8 flycheck elpy material-theme better-defaults)))
+   '(counsel format-all wakatime-mode magit py-autopep8 flycheck elpy material-theme better-defaults))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
@@ -86,3 +83,22 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+(put 'upcase-region 'disabled nil)
+
+;; Run/highlight code using babel in org mode
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '(
+   (C . t)
+   (python . t)
+   ;; Include other languages here
+   ))
+;;Syntax highlight in #+BEGIN_SRC blocks
+(setq org-src-fontify-natively t)
+;; Don't promt before running code in org
+(setq org-confirm-babel-evaluate nil)
+;; Fix an incompatibility issue between ob-sync and ob-ipython packages
+;;(setq ob-sync-no-async-languages-alist '("ipython")')
+;; set babel to use python3
+(setq org-babel-python-command "python3")
+(setq python-shell-completion-native-enable nil)
